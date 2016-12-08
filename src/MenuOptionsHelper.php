@@ -2,11 +2,16 @@
 
 namespace Drupal\views_menu_children_filter;
 
-
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\system\Entity\Menu;
 
+/**
+ * Provides helper classes for getting an options array of menus
+ *
+ * @package Drupal\views_menu_children_filter
+ */
 class MenuOptionsHelper {
+
   /**
    * Gets an array of all menu names.
    *

@@ -45,27 +45,36 @@ class MenuChildren extends NumericArgument {
    */
   public function query($group_by = FALSE) {
     $targetId = reset($this->value);
-    $placeholder = $this->placeholder();
-    $nidField = empty($this->tableAlias) ? 'nid' : "$this->tableAlias.nid";
-    $realField = empty($this->tableAlias) ? $this->realField : "$this->tableAlias.$this->realField";
-    $nullCheck = empty($this->options['not']) ? '' : "OR $realField IS NULL";
 
     if (!empty($targetId)) {
       if (count($this->value) >= 1) {
-        $operator = empty($this->options['not']) ? 'IN' : 'NOT IN';
-
         $children = MenuChildrenHelper::getChildEntityIds($targetId, $this->options['target_menus']);
 
-        if (!empty($children)) {
-          $placeholder .= '[]';
-        }
+        $placeholder = $this->queryPlaceholder($children);
+        $idField = empty($this->tableAlias) ? 'nid' : "$this->tableAlias.nid";
 
-        $this->query->addWhereExpression(
-          0,
-          "$nidField $operator($placeholder) $nullCheck",
+        $this->query->addWhereExpression(0,
+          "$idField IN ($placeholder)",
           array($placeholder => !empty($children) ? $children : '')
         );
       }
     }
+  }
+
+  /**
+   * Returns an array placeholder if there are children, and a standard
+   * placeholder if there are no children.
+   *
+   * @param array $children
+   * @return string
+   */
+  protected function queryPlaceholder(array $children) {
+    $placeholder = $this->placeholder();
+
+    if (!empty($children)) {
+      $placeholder .= '[]';
+    }
+
+    return $placeholder;
   }
 }

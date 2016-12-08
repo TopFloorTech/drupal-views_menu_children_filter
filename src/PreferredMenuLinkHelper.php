@@ -4,7 +4,13 @@ namespace Drupal\views_menu_children_filter;
 
 use Drupal\Core\Menu\MenuLinkInterface;
 
+/**
+ * Provides helper methods for finding the preferred menu link for a route.
+ *
+ * @package Drupal\views_menu_children_filter
+ */
 class PreferredMenuLinkHelper {
+
   /**
    * Tries to determine the top menu link for a given route
    *
@@ -24,11 +30,7 @@ class PreferredMenuLinkHelper {
       // Retrieve a list of menu names, ordered by preference.
       $menuLinks = \Drupal::service('plugin.manager.menu.link')->loadLinksByRoute($route, $routeParameters);
 
-      $candidates = [];
-      /** @var MenuLinkInterface $menuLink */
-      foreach ($menuLinks as $menuLink) {
-        $candidates[$menuLink->getRouteName()][$menuLink->getMenuName()] = $menuLink;
-      }
+      $candidates = self::getCandidatesFromMenuLinks($menuLinks);
 
       if (!empty($candidates)) {
         foreach ($menus as $menuName) {
@@ -45,6 +47,20 @@ class PreferredMenuLinkHelper {
     }
 
     return self::getPreferredMenuLinkForMenu($preferredLinks, $route, $menus);
+  }
+
+  /**
+   * @param MenuLinkInterface[] $menuLinks
+   * @return array
+   */
+  protected static function getCandidatesFromMenuLinks($menuLinks) {
+    $candidates = [];
+
+    foreach ($menuLinks as $menuLink) {
+      $candidates[$menuLink->getRouteName()][$menuLink->getMenuName()] = $menuLink;
+    }
+
+    return $candidates;
   }
 
   /**
