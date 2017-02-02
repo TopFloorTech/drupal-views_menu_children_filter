@@ -109,8 +109,12 @@ class MenuChildrenHelper {
    * @return Url The Url object representing the parent entity
    */
   protected static function getParentUrl($input) {
-    $parentPath = is_numeric($input) ? "node/$input" : $input;
+    if (is_numeric($input)) {
+      $url = Url::fromRoute('entity.node.canonical', ['node' => $input]);
+    } else {
+      $url = Url::fromUserInput('/' . trim($input, '/'));
+    }
 
-    return Url::fromUserInput('/' . trim($parentPath, '/'));
+    return $url;
   }
 }
