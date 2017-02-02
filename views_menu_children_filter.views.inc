@@ -15,4 +15,12 @@ function views_menu_children_filter_views_data_alter(array &$data) {
       ]
     ];
   }
+
+  $data['views']['menu_children'] = array(
+    'title' => t('Menu children weight'),
+    'help' => t("Sort by the menu children's weight."),
+    'sort' => array(
+      'id' => 'menu_children',
+    ),
+  );
 }

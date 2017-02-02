@@ -15,6 +15,11 @@ use Drupal\Core\Url;
 class MenuChildrenHelper {
 
   /**
+   * Static cache for menu children node id's.
+   */
+  protected static $childEntityIds = [];
+
+  /**
    * Returns an array of child entity IDs of the provided parent entity.
    *
    * @param string $parentArgument The argument, usually a path or a NID
@@ -22,21 +27,30 @@ class MenuChildrenHelper {
    * @return array The entity IDs of children of the specified parent
    */
   public static function getChildEntityIds($parentArgument, $menus = NULL) {
-    $children = [];
-
-    /** @var MenuLinkInterface $parent */
-    $parent = self::getParent($parentArgument, $menus);
-
-    if ($parent) {
-      $parameters = (new MenuTreeParameters())
-        ->setRoot($parent->getPluginId())
-        ->setMaxDepth(1)
-        ->excludeRoot();
-
-      $children = \Drupal::menuTree()->load($parent->getMenuName(), $parameters);
+    $key = $parentArgument;
+    if (is_array($menus)) {
+      $key .= ':' . implode(':', $menus);
     }
 
-    return self::getIds($children);
+    if (!isset(self::$childEntityIds[$key])) {
+      $children = [];
+
+      /** @var MenuLinkInterface $parent */
+      $parent = self::getParent($parentArgument, $menus);
+
+      if ($parent) {
+        $parameters = (new MenuTreeParameters())
+          ->setRoot($parent->getPluginId())
+          ->setMaxDepth(1)
+          ->excludeRoot();
+
+        $children = \Drupal::menuTree()->load($parent->getMenuName(), $parameters);
+      }
+
+      self::$childEntityIds[$key] = self::getIds($children);
+    }
+
+    return self::$childEntityIds[$key];
   }
 
   /**
@@ -52,9 +66,10 @@ class MenuChildrenHelper {
       /** @var MenuLinkTreeElement $menuLinkTreeElement */
       foreach ($children as $menuLinkTreeElement) {
         $childParameters = $menuLinkTreeElement->link->getRouteParameters();
+        $childWeight = $menuLinkTreeElement->link->getWeight();
 
         if (!empty($childParameters['node'])) {
-          $ids[] = $childParameters['node'];
+          $ids[$childWeight] = $childParameters['node'];
         }
       }
     }
