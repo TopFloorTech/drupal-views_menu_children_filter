@@ -33,7 +33,11 @@ class MenuChildren extends SortPluginBase {
       $idField = empty($argument->tableAlias) ? 'nid' : "$argument->tableAlias.nid";
       $orderByCase = "CASE $idField ";
       foreach ($children as $childWeight => $childId) {
-        $orderByCase .= "WHEN $childId THEN $childWeight ";
+        // Sanitize the id and weight values by casting to int, just to be sure.
+        // We cannot use query placeholders here, because the integers would get
+        // quoted, turn into strings, and break the order by clause when there
+        // are negative weights.
+        $orderByCase .= 'WHEN ' . (int)$childId . ' THEN ' . (int)$childWeight . ' ';
       }
       $orderByCase .= 'END';
 
