@@ -31,18 +31,24 @@ class MenuChildren extends SortPluginBase {
       // Build an arbitrary sort order statement that is compatible with MySQL,
       // PostgreSQL and SQLite.
       $idField = empty($argument->tableAlias) ? 'nid' : "$argument->tableAlias.nid";
-      $orderByCase = "CASE $idField ";
+
+      $orderBy = [];
+
       foreach ($children as $childWeight => $childId) {
         // Sanitize the id and weight values by casting to int, just to be sure.
         // We cannot use query placeholders here, because the integers would get
         // quoted, turn into strings, and break the order by clause when there
         // are negative weights.
-        $orderByCase .= 'WHEN ' . (int)$childId . ' THEN ' . (int)$childWeight . ' ';
+        $orderBy[] = 'WHEN ' . (int)$childId . ' THEN ' . (int)$childWeight . ' ';
       }
-      $orderByCase .= 'END';
 
-      $this->query->addField(NULL, $orderByCase, 'menu_children_order');
-      $this->query->addOrderBy(NULL, NULL, $this->options['order'], 'menu_children_order');
+      if (!empty($orderBy)) {
+        $orderByCase = "CASE $idField " . implode(' ', $orderBy) . ' END';
+
+        $this->query->addField(NULL, $orderByCase, 'menu_children_order');
+        $this->query->addOrderBy(NULL, NULL, $this->options['order'], 'menu_children_order');
+      }
+
     }
   }
 
