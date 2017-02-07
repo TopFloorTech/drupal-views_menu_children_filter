@@ -20,13 +20,57 @@ class MenuChildrenHelper {
   protected static $childEntityIds = [];
 
   /**
+   * Static cache for menu child id weights.
+   */
+  protected static $childEntityWeights = [];
+
+  /**
    * Returns an array of child entity IDs of the provided parent entity.
    *
-   * @param string $parentArgument The argument, usually a path or a NID
-   * @param array|NULL $menus The menus to search for children within
-   * @return array The entity IDs of children of the specified parent
+   * @param string $parentArgument
+   *   The argument, usually a path or a NID.
+   * @param array|NULL $menus
+   *   The menus to search for children within.
+   *
+   * @return array
+   *   The entity IDs of children of the specified parent.
    */
   public static function getChildEntityIds($parentArgument, $menus = NULL) {
+    $key = self::populateChildEntityInfo($parentArgument, $menus);
+
+    return self::$childEntityIds[$key];
+  }
+
+  /**
+   * Returns an array of child weights of the provided parent entity,
+   *  keyed by entity ID.
+   *
+   * @param string $parentArgument
+   *   The argument, usually a path or a NID.
+   * @param array|NULL $menus
+   *   The menus to search for children within.
+   *
+   * @return array
+   *   The weights of children of the specified parent, keyed by entity ID.
+   */
+  public static function getChildEntityWeights($parentArgument, $menus = NULL) {
+    $key = self::populateChildEntityInfo($parentArgument, $menus);
+
+    return self::$childEntityWeights[$key];
+  }
+
+  /**
+   * Caches child entity IDS and weights for the provided parent.
+   *
+   * @param string $parentArgument
+   *   The argument, usually a path or a NID.
+   * @param array|NULL $menus
+   *   The menus to search for children within.
+   *
+   * @return string
+   *   The cache key.
+   */
+  public static function populateChildEntityInfo($parentArgument, $menus = NULL) {
     $key = $parentArgument;
     if (is_array($menus)) {
       $key .= ':' . implode(':', $menus);
@@ -48,9 +92,10 @@ class MenuChildrenHelper {
       }
 
       self::$childEntityIds[$key] = self::getIds($children);
+      self::$childEntityWeights[$key] = self::getWeights($children);
     }
 
-    return self::$childEntityIds[$key];
+    return $key;
   }
 
   /**
@@ -66,15 +111,38 @@ class MenuChildrenHelper {
       /** @var MenuLinkTreeElement $menuLinkTreeElement */
       foreach ($children as $menuLinkTreeElement) {
         $childParameters = $menuLinkTreeElement->link->getRouteParameters();
-        $childWeight = $menuLinkTreeElement->link->getWeight();
 
         if (!empty($childParameters['node'])) {
-          $ids[$childWeight] = $childParameters['node'];
+          $ids[$childParameters['node']] = $childParameters['node'];
         }
       }
     }
 
     return $ids;
+  }
+
+  /**
+   * Gets the entity IDs of the provided child MenuLinkTreeElement entities
+   *
+   * @param MenuLinkTreeElement[] $children
+   * @return integer[]
+   */
+  protected static function getWeights($children) {
+    $weights = [];
+
+    if (!empty($children)) {
+      /** @var MenuLinkTreeElement $menuLinkTreeElement */
+      foreach ($children as $menuLinkTreeElement) {
+        $childParameters = $menuLinkTreeElement->link->getRouteParameters();
+        $childWeight = $menuLinkTreeElement->link->getWeight();
+
+        if (!empty($childParameters['node'])) {
+          $weights[$childParameters['node']] = $childWeight;
+        }
+      }
+    }
+
+    return $weights;
   }
 
   /**

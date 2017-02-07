@@ -26,7 +26,7 @@ class MenuChildren extends SortPluginBase {
       }
 
       $targetId = reset($argument->value);
-      $children = MenuChildrenHelper::getChildEntityIds($targetId, $argument->options['target_menus']);
+      $children = MenuChildrenHelper::getChildEntityWeights($targetId, $argument->options['target_menus']);
 
       // Build an arbitrary sort order statement that is compatible with MySQL,
       // PostgreSQL and SQLite.
@@ -34,7 +34,7 @@ class MenuChildren extends SortPluginBase {
 
       $orderBy = [];
 
-      foreach ($children as $childWeight => $childId) {
+      foreach ($children as $childId => $childWeight) {
         // Sanitize the id and weight values by casting to int, just to be sure.
         // We cannot use query placeholders here, because the integers would get
         // quoted, turn into strings, and break the order by clause when there
