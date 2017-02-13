@@ -1,3 +1,9 @@
+Views Menu Children Filter 8.x-1.0-alpha4, 2017-02-12
+-----------------------------------------------------
+by bmcclure: Update CHANGELOG.txt
+#2850612 by bmcclure: Some child items not being returned
+#2850581 by bmcclure: Exception when ordering by menu weight
+
 Views Menu Children Filter 8.x-1.0-alpha3, 2017-02-03
 -----------------------------------------------------
 #2554693 follow-up by marcvangend: Order by menu weight
