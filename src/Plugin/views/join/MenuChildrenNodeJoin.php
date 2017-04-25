@@ -27,7 +27,7 @@ class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface
       'left_table' => false,
       'left_field' => false,
       'operator' => '=',
-    ), $plugin_id = 'MenuChildrenNodeJoin', $plugin_definition = null, EntityManagerInterface $entity_manager) {
+    ), $plugin_id = 'MenuChildrenNodeJoin', $plugin_definition = null) {
 
 
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -125,8 +125,7 @@ class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface
     return new static(
       $configuration,
       $plugin_id,
-      $plugin_definition,
-      $container->get('entity.manager')
+      $plugin_definition
     );
   }
 }
