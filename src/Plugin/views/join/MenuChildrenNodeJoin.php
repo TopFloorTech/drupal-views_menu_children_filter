@@ -2,8 +2,7 @@
 
 namespace Drupal\views_menu_children_filter\Plugin\views\join;
 
-use Drupal\Core\Database\Driver\mysql\Select;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\views\Plugin\views\join\JoinPluginBase;
 use Drupal\views\Plugin\views\join\JoinPluginInterface;
 use Drupal\views\Plugin\views\query\Sql;
@@ -17,29 +16,68 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @ingroup views_join_handlers
  * @ViewsJoin("menu_children_node_join")
  */
-class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface, ContainerFactoryPluginInterface {
+class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface {
 
 
-  public function __construct(array $configuration = array(
+  /**
+   * The values to concat with node.nid in to join on the menu_tree's route_param_key column.
+   *
+   * @var array Defaults to: [ 'entity:node/' ].
+   */
+  public $prefixes = array( 'entity:node/' );
+
+
+  /**
+   * MenuChildrenNodeJoin constructor.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler Required to setup hook_TYPE_alter hooks so module's can alter this join.
+   * @param array $configuration
+   * @param string $plugin_id
+   * @param mixed $plugin_definition
+   */
+  public function __construct(ModuleHandlerInterface $module_handler, array $configuration, $plugin_id, $plugin_definition ) {
+    // Define a hook_TYPE_alter hook for other modules to change the "prefixes" used in the SQL join.
+    $module_handler->alter('menu_children_filter_join_prefix', $this->prefixes);
+
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  }
+
+  /**
+   * Creates an instance of the plugin.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The container to pull out services used in the plugin.
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin ID for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   *
+   * @return static
+   *   Returns an instance of this plugin.
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    // Setup some defaults.
+    $configuration = array_merge(array(
       'type' => 'INNER',
       'table' => 'menu_link_content_data',
       'field' => false, // Formula value handled in the "buildJoin" function.
       'left_table' => false,
       'left_field' => false,
       'operator' => '=',
-    ), $plugin_id = 'MenuChildrenNodeJoin', $plugin_definition = null) {
+    ), $configuration);
 
+    $test = $container->get('views_menu_children_filter.join_handler');
 
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $plugin_id = empty($plugin_id) ? "menu_children_node_join" : $plugin_id;
+
+    return new static(
+      $container->get('module_handler'),
+      $configuration,
+      $plugin_id,
+      $plugin_definition
+    );
   }
-
-  /**
-   * The values to concact with node.nid in to join on the menu_tree's route_param_key column.
-   *
-   * @var array Defaults to: [ 'entity:node/' ].
-   */
-  public $prefixes = array( 'entity:node/' );
-
 
 
   /**
@@ -74,18 +112,15 @@ class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface
    * @param Sql $query The query that the join will be added to.
    * @param bool $allow_duplicate_join If "false", prevents this join from joining more than once if this function is called repeatedly.
    */
-  public static function joinMenuLinksTableToNode(Sql $query, $allow_duplicate_join = false) {
+  public function joinToNodeTable(Sql $query, $allow_duplicate_join = false) {
     // Because this can be called from the argument and sort handlers,
     // first check to see if the join as already been applied.
     if(!$allow_duplicate_join && isset($query->tables['node_field_data']['menu_link_content_data'])) {
       return;
     }
 
-    // We need to join on the menu_links table.
-    // Use our special views_join object to accomplish this.
-    $join = new MenuChildrenNodeJoin();
     //drupal_alter('views_menu_children_filter_join', $join->prefixes, $menu_name, $query); /* Not D8 compatible. */
-    $query->queueTable("menu_link_content_data", "node_field_data", $join);
+    $query->queueTable("menu_link_content_data", "node_field_data", $this);
   }
 
   /**
@@ -101,31 +136,6 @@ class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface
       0,
       'menu_link_content_data.parent = :parent_lid',
       array(':parent_lid' => $parent)
-    );
-  }
-
-
-  /**
-   * Creates an instance of the plugin.
-   *
-   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
-   *   The container to pull out services used in the plugin.
-   * @param array $configuration
-   *   A configuration array containing information about the plugin instance.
-   * @param string $plugin_id
-   *   The plugin ID for the plugin instance.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   *
-   * @return static
-   *   Returns an instance of this plugin.
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    // TODO: Implement create() method.
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition
     );
   }
 }

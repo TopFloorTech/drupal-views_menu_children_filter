@@ -3,11 +3,13 @@
 namespace Drupal\views_menu_children_filter\Plugin\views\argument;
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Url;
 use Drupal\views\Plugin\views\argument\NumericArgument;
 use Drupal\views\Plugin\views\query\Sql;
 use Drupal\views_menu_children_filter\MenuOptionsHelper;
 use Drupal\views_menu_children_filter\Plugin\views\join\MenuChildrenNodeJoin;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * A filter to show menu children of a parent menu item
@@ -16,7 +18,24 @@ use Drupal\views_menu_children_filter\Plugin\views\join\MenuChildrenNodeJoin;
  *
  * @ViewsArgument("menu_children")
  */
-class MenuChildren extends NumericArgument {
+class MenuChildren extends NumericArgument implements ContainerFactoryPluginInterface {
+
+  /**
+   * @var \Drupal\views_menu_children_filter\Plugin\views\join\MenuChildrenNodeJoin
+   */
+  protected $joinHandler;
+
+  /**
+   * MenuChildren constructor.
+   * @param \Drupal\views_menu_children_filter\Plugin\views\join\MenuChildrenNodeJoin $join_handler
+   * @param array $configuration
+   * @param string $plugin_id
+   * @param mixed $plugin_definition
+   */
+  function __construct(MenuChildrenNodeJoin $join_handler, array $configuration, $plugin_id, $plugin_definition) {
+    $this->joinHandler = $join_handler;
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  }
 
   /**
    * {@inheritdoc}
@@ -154,7 +173,7 @@ class MenuChildren extends NumericArgument {
    */
   public function setRelationship() {
 
-    MenuChildrenNodeJoin::joinMenuLinksTableToNode($this->query);
+    $this->joinHandler->joinToNodeTable($this->query);
 
     $menus = $this->options['target_menus'];
 
@@ -197,5 +216,29 @@ class MenuChildren extends NumericArgument {
     }
 
     return $url;
+  }
+
+  /**
+   * Creates an instance of the plugin.
+   *
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The container to pull out services used in the plugin.
+   * @param array $configuration
+   *   A configuration array containing information about the plugin instance.
+   * @param string $plugin_id
+   *   The plugin ID for the plugin instance.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   *
+   * @return static
+   *   Returns an instance of this plugin.
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $container->get('views_menu_children_filter.join_handler'),
+      $configuration,
+      $plugin_id,
+      $plugin_definition
+    );
   }
 }
