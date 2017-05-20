@@ -67,9 +67,12 @@ class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface
       'operator' => '=',
     ), $configuration);
 
-    $test = $container->get('views_menu_children_filter.join_handler');
+    // TODO: Remove this after dev work completed.
+    // $test = $container->get('views_menu_children_filter.join_handler');
 
-    $plugin_id = empty($plugin_id) ? "menu_children_node_join" : $plugin_id;
+    $plugin_id = empty($plugin_id)
+      ? "menu_children_node_join"
+      : $plugin_id;
 
     return new static(
       $container->get('module_handler'),
