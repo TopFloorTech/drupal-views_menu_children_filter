@@ -29,4 +29,20 @@ function views_menu_children_filter_views_data_alter(array &$data) {
       ),
     ];
   }
+
+  // Adding sort handler to the global space for backward compatibility.
+  $data['views']['menu_children'] = [
+    'title' => t('Menu children weight (Deprecated)'),
+    'table' => array(
+      'group' => t('Menu Tree'),
+      'base' => array(
+        'field'
+      ),
+    ),
+    'help' => t("Sort by the menu children's weight."),
+    'sort' => array(
+      'id' => 'menu_children',
+    ),
+  ];
 }
+
