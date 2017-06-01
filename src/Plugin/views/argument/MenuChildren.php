@@ -192,7 +192,10 @@ class MenuChildren extends NumericArgument implements ContainerFactoryPluginInte
    * @param \Drupal\menu_link_content\Plugin\Menu\MenuLinkContent $link The by parent link.
    */
   public static function filterByPage(Sql $query, $link) {
-    $parent = $link->getPluginId();
+
+    $parent = isset($link)
+      ? $link->getPluginId()
+      : 0;
 
     $query->addWhereExpression(
       0,
