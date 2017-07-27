@@ -163,9 +163,14 @@ class MenuChildren extends NumericArgument implements ContainerFactoryPluginInte
    */
   public static function buildRouteIdentifier($menu_name, $route_name, array $route_parameters) {
     // Merge the keys and values of the $route_parameters array into a zipper like fashion.
-    $zipped_arrays = array_map(null, array_keys($route_parameters), array_values($route_parameters));
+    $zipped_arrays = array_map(NULL, array_keys($route_parameters), array_values($route_parameters));
 
-    return "$menu_name:$route_name:" . implode(":", reset($zipped_arrays));
+    $parameters = '';
+    if (!empty(reset($zipped_arrays))) {
+      $parameters = implode(":", reset($zipped_arrays));
+    }
+
+    return "$menu_name:$route_name:" . $parameters;
   }
 
   /**
