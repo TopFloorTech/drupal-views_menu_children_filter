@@ -49,9 +49,8 @@ class MenuOptionsHelper {
     return [
       '#type' => 'select',
       '#title' => t('Target menus'),
-      '#description' => t('Select the menu(s) to scan for child entities.'),
+      '#description' => t('Select the menu(s) to scan for child entities. If no menu is selected, the first matching menu will be used.'),
       '#multiple' => TRUE,
-      '#required' => TRUE,
       '#options' => self::getMenuOptions(),
       '#default_value' => $defaultValue,
     ];

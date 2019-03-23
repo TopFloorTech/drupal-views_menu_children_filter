@@ -2,7 +2,6 @@
 
 namespace Drupal\views_menu_children_filter\Plugin\views\sort;
 
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\views\Plugin\views\sort\SortPluginBase;
 use Drupal\views_menu_children_filter\Plugin\views\join\MenuChildrenNodeJoin;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -14,7 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @ViewsSort("menu_children")
  */
-class MenuChildren extends SortPluginBase implements ContainerFactoryPluginInterface {
+class MenuChildren extends SortPluginBase {
 
   /**
    * @var \Drupal\views_menu_children_filter\Plugin\views\join\MenuChildrenNodeJoin
@@ -57,13 +56,11 @@ class MenuChildren extends SortPluginBase implements ContainerFactoryPluginInter
   }
 
   public function query() {
-
     $this->joinHandler->joinToNodeTable($this->query);
-
     $tables = $this->query->tables['node_field_data'];
-
     $this->query->addOrderBy($tables['menu_link_content_data']['alias'], 'weight', $this->options['order']);
     $this->query->addOrderBy($tables['node_field_data']['alias'], 'title', $this->options['order']);
     $this->query->addOrderBy($tables['menu_link_content_data']['alias'], 'id', $this->options['order']);
   }
+
 }

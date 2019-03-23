@@ -4,7 +4,6 @@ namespace Drupal\views_menu_children_filter\Plugin\views\join;
 
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\views\Plugin\views\join\JoinPluginBase;
-use Drupal\views\Plugin\views\join\JoinPluginInterface;
 use Drupal\views\Plugin\views\query\Sql;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -16,7 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @ingroup views_join_handlers
  * @ViewsJoin("menu_children_node_join")
  */
-class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface {
+class MenuChildrenNodeJoin extends JoinPluginBase {
 
 
   /**
@@ -88,25 +87,21 @@ class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface
    */
   function buildJoin($select_query, $table, $view_query) {
     $values = array();
-
     $node_table_alias = $select_query->getTables()['node_field_data']['alias'];
 
-    $condition = "( $this->table.enabled = 1 ) AND ( ";
-    // Loop over the prefixes to use while join on the menu_tree.route_param_key and construct the JOIN condition SQL.
-    for($i = 0; $i < count($this->prefixes); $i++) {
-      // Use MySQL's CONCAT func to concatenate the prefix with the node.nid.
-      // Provide the prefix as a parametrized value.
+    $condition_parts = [];
+    foreach ($this->prefixes as $prefix) {
+      // Concatenate prefix with node.nid and provide as a parametrized value.
       $placeholder = ':views_join_condition_' . $select_query->nextPlaceholder();
-      $values[$placeholder] = $this->prefixes[$i];
-
-      $condition .= "( CONCAT($placeholder, $node_table_alias.nid) = $this->table.link__uri)";
-      // Each additional prefix to use in the join condition is added as a "OR" statement.
-      // Keep using the OR statement unless we're on the last iteration or there is only one prefix to use.
-      if($i < (count($this->prefixes) -1)) {
-        $condition .= " OR ";
-      }
+      $values[$placeholder] = $prefix;
+      $condition_parts[] = "( CONCAT($placeholder, $node_table_alias.nid) = $this->table.link__uri)";
     }
-    $condition .= " )";
+
+    $condition = sprintf(
+      '(%s.enabled = 1) AND (%s)',
+      $this->table,
+      implode(' OR ', $condition_parts)
+    );
 
     $select_query->addJoin($this->type, $this->table, $table['alias'], $condition, $values);
   }
@@ -122,7 +117,6 @@ class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface
       return;
     }
 
-    //drupal_alter('views_menu_children_filter_join', $join->prefixes, $menu_name, $query); /* Not D8 compatible. */
     $query->queueTable("menu_link_content_data", "node_field_data", $this);
   }
 
@@ -141,4 +135,5 @@ class MenuChildrenNodeJoin extends JoinPluginBase implements JoinPluginInterface
       array(':parent_lid' => $parent)
     );
   }
+
 }
