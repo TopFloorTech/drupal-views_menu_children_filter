@@ -1,3 +1,8 @@
+Views Menu Children Filter 8.x-1.0-beta3, 2019-03-23
+----------------------------------------------------
+#3018481 by lennartvv, bmcclure: Make menu selection optional
+#2897796 by John Cook: "Warning: implode(): Invalid arguments" When Building Route Identifiers
+
 Views Menu Children Filter 8.x-1.0-beta2, 2017-06-01
 ----------------------------------------------------
 by cravecode: Adding sanity check to $link
